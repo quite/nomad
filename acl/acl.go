@@ -2,8 +2,10 @@ package acl
 
 import (
 	"fmt"
+	"strings"
 
 	iradix "github.com/hashicorp/go-immutable-radix"
+	glob "github.com/ryanuber/go-glob"
 )
 
 // ManagementACL is a singleton used for management tokens
@@ -44,6 +46,9 @@ type ACL struct {
 	// namespaces maps a namespace to a capabilitySet
 	namespaces *iradix.Tree
 
+	// wildcardNamespaces maps a glob pattern of a namespace to a capabilitySet
+	wildcardNamespaces *iradix.Tree
+
 	agent    string
 	node     string
 	operator string
@@ -75,18 +80,33 @@ func NewACL(management bool, policies []*Policy) (*ACL, error) {
 	// Create the ACL object
 	acl := &ACL{}
 	nsTxn := iradix.New().Txn()
+	wnsTxn := iradix.New().Txn()
 
 	for _, policy := range policies {
 	NAMESPACES:
 		for _, ns := range policy.Namespaces {
+			// Should the namespace be matched using a glob?
+			globDefinition := strings.Contains(ns.Name, "*")
+
 			// Check for existing capabilities
 			var capabilities capabilitySet
-			raw, ok := nsTxn.Get([]byte(ns.Name))
-			if ok {
-				capabilities = raw.(capabilitySet)
+
+			if globDefinition {
+				raw, ok := wnsTxn.Get([]byte(ns.Name))
+				if ok {
+					capabilities = raw.(capabilitySet)
+				} else {
+					capabilities = make(capabilitySet)
+					wnsTxn.Insert([]byte(ns.Name), capabilities)
+				}
 			} else {
-				capabilities = make(capabilitySet)
-				nsTxn.Insert([]byte(ns.Name), capabilities)
+				raw, ok := nsTxn.Get([]byte(ns.Name))
+				if ok {
+					capabilities = raw.(capabilitySet)
+				} else {
+					capabilities = make(capabilitySet)
+					nsTxn.Insert([]byte(ns.Name), capabilities)
+				}
 			}
 
 			// Deny always takes precedence
@@ -123,6 +143,7 @@ func NewACL(management bool, policies []*Policy) (*ACL, error) {
 
 	// Finalize the namespaces
 	acl.namespaces = nsTxn.Commit()
+	acl.wildcardNamespaces = wnsTxn.Commit()
 	return acl, nil
 }
 
@@ -139,13 +160,12 @@ func (a *ACL) AllowNamespaceOperation(ns string, op string) bool {
 	}
 
 	// Check for a matching capability set
-	raw, ok := a.namespaces.Get([]byte(ns))
+	capabilities, ok := a.matchingCapabilitySet(ns)
 	if !ok {
 		return false
 	}
 
 	// Check if the capability has been granted
-	capabilities := raw.(capabilitySet)
 	return capabilities.Check(op)
 }
 
@@ -157,18 +177,44 @@ func (a *ACL) AllowNamespace(ns string) bool {
 	}
 
 	// Check for a matching capability set
-	raw, ok := a.namespaces.Get([]byte(ns))
+	capabilities, ok := a.matchingCapabilitySet(ns)
 	if !ok {
 		return false
 	}
 
 	// Check if the capability has been granted
-	capabilities := raw.(capabilitySet)
 	if len(capabilities) == 0 {
 		return false
 	}
 
 	return !capabilities.Check(PolicyDeny)
+}
+
+// matchingCapabilitySet looks for a capabilitySet that matches the namespace,
+// if no concrete definitions are found, then we return the first loaded glob.
+//
+// We currently do not merge capabilities for matching globs.
+func (a *ACL) matchingCapabilitySet(ns string) (capabilitySet, bool) {
+	// Check for a concrete matching capability set
+	raw, ok := a.namespaces.Get([]byte(ns))
+	if ok {
+		return raw.(capabilitySet), true
+	}
+
+	// Find the first matching glob capability set that matches
+	var cs capabilitySet
+	var found bool
+	a.wildcardNamespaces.Root().Walk(func(k []byte, v interface{}) bool {
+		match := glob.Glob(string(k), ns)
+		if match {
+			cs = v.(capabilitySet)
+			found = true
+		}
+
+		return match
+	})
+
+	return cs, found
 }
 
 // AllowAgentRead checks if read operations are allowed for an agent

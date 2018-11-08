@@ -1,6 +1,7 @@
 package acl
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -259,6 +260,53 @@ func TestAllowNamespace(t *testing.T) {
 			assert.Nil(err)
 
 			assert.Equal(tc.Allow, acl.AllowNamespace("foo"))
+		})
+	}
+}
+
+func TestWildcardNamespaceMatching(t *testing.T) {
+	tests := []struct {
+		Policy string
+		Allow  bool
+	}{
+		{ // Wildcard matches
+			Policy: `namespace "prod-api-*" { policy = "write" }`,
+			Allow:  true,
+		},
+		{ // Non globbed namespaces are not wildcards
+			Policy: `namespace "prod-api" { policy = "write" }`,
+			Allow:  false,
+		},
+		{ // Concrete matches take precedence
+			Policy: `namespace "prod-api-services" { policy = "deny" }
+			         namespace "prod-api-*" { policy = "write" }`,
+			Allow: false,
+		},
+		{
+			Policy: `namespace "prod-api-*" { policy = "deny" }
+			         namespace "prod-api-services" { policy = "write" }`,
+			Allow: true,
+		},
+		{ // The first defined glob policy wins
+			Policy: `namespace "*-services" { policy = "deny" }
+			         namespace "prod-api-*" { policy = "write" }`,
+			Allow: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Policy, func(t *testing.T) {
+			assert := assert.New(t)
+
+			policy, err := Parse(tc.Policy)
+			fmt.Printf("Policy: %v, err: %v\n", policy, err)
+			assert.NoError(err)
+			assert.NotNil(policy.Namespaces)
+
+			acl, err := NewACL(false, []*Policy{policy})
+			assert.Nil(err)
+
+			assert.Equal(tc.Allow, acl.AllowNamespace("prod-api-services"))
 		})
 	}
 }

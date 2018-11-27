@@ -111,7 +111,7 @@ func (d *JavaDriver) Abilities() DriverAbilities {
 	}
 }
 
-func (d *JavaDriver) Fingerprint(req *cstructs.FingerprintRequest, resp *cstructs.FingerprintResponse) error {
+func (d *JavaDriver) Fingerprint(req *fingerprint.FingerprintRequest, resp *fingerprint.FingerprintResponse) error {
 	// Only enable if we are root and cgroups are mounted when running on linux systems.
 	if runtime.GOOS == "linux" && (syscall.Geteuid() != 0 || !cgroupsMounted(req.Node)) {
 		if d.fingerprintSuccess == nil || *d.fingerprintSuccess {

@@ -17,6 +17,7 @@ import (
 	hclog "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad/client/driver/logging"
 	dstructs "github.com/hashicorp/nomad/client/driver/structs"
+	"github.com/hashicorp/nomad/client/fingerprint"
 	cstructs "github.com/hashicorp/nomad/client/structs"
 	"github.com/hashicorp/nomad/nomad/structs"
 )
@@ -232,7 +233,7 @@ func (m *MockDriver) Validate(map[string]interface{}) error {
 }
 
 // Fingerprint fingerprints a node and returns if MockDriver is enabled
-func (m *MockDriver) Fingerprint(req *cstructs.FingerprintRequest, resp *cstructs.FingerprintResponse) error {
+func (m *MockDriver) Fingerprint(req *fingerprint.FingerprintRequest, resp *fingerprint.FingerprintResponse) error {
 	switch {
 	// If the driver is configured to shut down after a period of time, and the
 	// current time is after the time which the node should shut down, simulate

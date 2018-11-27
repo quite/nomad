@@ -15,7 +15,7 @@ import (
 
 	"github.com/hashicorp/nomad/client/config"
 	"github.com/hashicorp/nomad/client/driver/env"
-	cstructs "github.com/hashicorp/nomad/client/structs"
+	"github.com/hashicorp/nomad/client/fingerprint"
 	tu "github.com/hashicorp/nomad/client/testutil"
 	"github.com/hashicorp/nomad/helper/testtask"
 	"github.com/hashicorp/nomad/nomad/structs"
@@ -39,8 +39,8 @@ func TestRawExecDriver_Fingerprint(t *testing.T) {
 	// Disable raw exec.
 	cfg := &config.Config{Options: map[string]string{rawExecEnableOption: "false"}}
 
-	request := &cstructs.FingerprintRequest{Config: cfg, Node: node}
-	var response cstructs.FingerprintResponse
+	request := &fingerprint.FingerprintRequest{Config: cfg, Node: node}
+	var response fingerprint.FingerprintResponse
 	err := d.Fingerprint(request, &response)
 	if err != nil {
 		t.Fatalf("err: %v", err)

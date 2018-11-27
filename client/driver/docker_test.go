@@ -175,8 +175,8 @@ func TestDockerDriver_Fingerprint(t *testing.T) {
 		Attributes: make(map[string]string),
 	}
 
-	request := &cstructs.FingerprintRequest{Config: &config.Config{}, Node: node}
-	var response cstructs.FingerprintResponse
+	request := &fingerprint.FingerprintRequest{Config: &config.Config{}, Node: node}
+	var response fingerprint.FingerprintResponse
 	err := d.Fingerprint(request, &response)
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -228,8 +228,8 @@ func TestDockerDriver_Fingerprint_Bridge(t *testing.T) {
 	conf.Node = mock.Node()
 	dd := NewDockerDriver(NewDriverContext("", "", "", "", conf, conf.Node, testlog.Logger(t), nil))
 
-	request := &cstructs.FingerprintRequest{Config: conf, Node: conf.Node}
-	var response cstructs.FingerprintResponse
+	request := &fingerprint.FingerprintRequest{Config: conf, Node: conf.Node}
+	var response fingerprint.FingerprintResponse
 
 	err = dd.Fingerprint(request, &response)
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/nomad/client/config"
-	cstructs "github.com/hashicorp/nomad/client/structs"
+	"github.com/hashicorp/nomad/client/fingerprint"
 	ctestutil "github.com/hashicorp/nomad/client/testutil"
 	"github.com/hashicorp/nomad/nomad/structs"
 	"github.com/hashicorp/nomad/testutil"
@@ -42,8 +42,8 @@ func TestLxcDriver_Fingerprint(t *testing.T) {
 
 	// test with an empty config
 	{
-		request := &cstructs.FingerprintRequest{Config: &config.Config{}, Node: node}
-		var response cstructs.FingerprintResponse
+		request := &fingerprint.FingerprintRequest{Config: &config.Config{}, Node: node}
+		var response fingerprint.FingerprintResponse
 		err := d.Fingerprint(request, &response)
 		if err != nil {
 			t.Fatalf("err: %v", err)
@@ -53,8 +53,8 @@ func TestLxcDriver_Fingerprint(t *testing.T) {
 	// test when lxc is enable din the config
 	{
 		conf := &config.Config{Options: map[string]string{lxcConfigOption: "1"}}
-		request := &cstructs.FingerprintRequest{Config: conf, Node: node}
-		var response cstructs.FingerprintResponse
+		request := &fingerprint.FingerprintRequest{Config: conf, Node: node}
+		var response fingerprint.FingerprintResponse
 		err := d.Fingerprint(request, &response)
 		if err != nil {
 			t.Fatalf("err: %v", err)

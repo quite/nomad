@@ -102,7 +102,7 @@ func (d *RawExecDriver) FSIsolation() cstructs.FSIsolation {
 	return cstructs.FSIsolationNone
 }
 
-func (d *RawExecDriver) Fingerprint(req *cstructs.FingerprintRequest, resp *cstructs.FingerprintResponse) error {
+func (d *RawExecDriver) Fingerprint(req *fingerprint.FingerprintRequest, resp *fingerprint.FingerprintResponse) error {
 	// Check that the user has explicitly enabled this executor.
 	enabled := req.Config.ReadBoolDefault(rawExecEnableOption, false)
 

@@ -3,11 +3,11 @@
 package driver
 
 import (
-	cstructs "github.com/hashicorp/nomad/client/structs"
+	"github.com/hashicorp/nomad/client/fingerprint"
 	"github.com/hashicorp/nomad/helper"
 )
 
-func (d *ExecDriver) Fingerprint(req *cstructs.FingerprintRequest, resp *cstructs.FingerprintResponse) error {
+func (d *ExecDriver) Fingerprint(req *fingerprint.FingerprintRequest, resp *fingerprint.FingerprintResponse) error {
 	d.fingerprintSuccess = helper.BoolToPtr(false)
 	resp.Detected = false
 	return nil

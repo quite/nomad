@@ -5,6 +5,7 @@ package driver
 import (
 	"time"
 
+	"github.com/hashicorp/nomad/client/fingerprint"
 	cstructs "github.com/hashicorp/nomad/client/structs"
 	"github.com/hashicorp/nomad/nomad/structs"
 )
@@ -45,7 +46,7 @@ func (RktDriver) FSIsolation() cstructs.FSIsolation {
 	panic("not implemented")
 }
 
-func (RktDriver) Fingerprint(req *cstructs.FingerprintRequest, resp *cstructs.FingerprintResponse) error {
+func (RktDriver) Fingerprint(req *fingerprint.FingerprintRequest, resp *fingerprint.FingerprintResponse) error {
 	return nil
 }
 

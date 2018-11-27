@@ -183,7 +183,7 @@ func (d *LxcDriver) FSIsolation() cstructs.FSIsolation {
 }
 
 // Fingerprint fingerprints the lxc driver configuration
-func (d *LxcDriver) Fingerprint(req *cstructs.FingerprintRequest, resp *cstructs.FingerprintResponse) error {
+func (d *LxcDriver) Fingerprint(req *fingerprint.FingerprintRequest, resp *fingerprint.FingerprintResponse) error {
 	cfg := req.Config
 
 	enabled := cfg.ReadBoolDefault(lxcConfigOption, true)

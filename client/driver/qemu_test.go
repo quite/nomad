@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/consul/lib/freeport"
 	"github.com/hashicorp/nomad/client/config"
-	cstructs "github.com/hashicorp/nomad/client/structs"
+	"github.com/hashicorp/nomad/client/fingerprint"
 	"github.com/hashicorp/nomad/helper/testlog"
 	"github.com/hashicorp/nomad/nomad/structs"
 	"github.com/hashicorp/nomad/testutil"
@@ -40,8 +40,8 @@ func TestQemuDriver_Fingerprint(t *testing.T) {
 		Attributes: make(map[string]string),
 	}
 
-	request := &cstructs.FingerprintRequest{Config: &config.Config{}, Node: node}
-	var response cstructs.FingerprintResponse
+	request := &fingerprint.FingerprintRequest{Config: &config.Config{}, Node: node}
+	var response fingerprint.FingerprintResponse
 	err := d.Fingerprint(request, &response)
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -184,8 +184,8 @@ func TestQemuDriver_GracefulShutdown(t *testing.T) {
 	defer ctx.Destroy()
 	d := NewQemuDriver(ctx.DriverCtx)
 
-	request := &cstructs.FingerprintRequest{Config: &config.Config{}, Node: ctx.DriverCtx.node}
-	var response cstructs.FingerprintResponse
+	request := &fingerprint.FingerprintRequest{Config: &config.Config{}, Node: ctx.DriverCtx.node}
+	var response fingerprint.FingerprintResponse
 	err := d.Fingerprint(request, &response)
 	if err != nil {
 		t.Fatalf("err: %v", err)

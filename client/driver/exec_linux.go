@@ -1,7 +1,7 @@
 package driver
 
 import (
-	cstructs "github.com/hashicorp/nomad/client/structs"
+	"github.com/hashicorp/nomad/client/fingerprint"
 	"github.com/hashicorp/nomad/helper"
 	"golang.org/x/sys/unix"
 )
@@ -12,7 +12,7 @@ const (
 	execDriverAttr = "driver.exec"
 )
 
-func (d *ExecDriver) Fingerprint(req *cstructs.FingerprintRequest, resp *cstructs.FingerprintResponse) error {
+func (d *ExecDriver) Fingerprint(req *fingerprint.FingerprintRequest, resp *fingerprint.FingerprintResponse) error {
 	// The exec driver will be detected in every case
 	resp.Detected = true
 

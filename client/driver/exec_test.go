@@ -14,7 +14,7 @@ import (
 
 	"github.com/hashicorp/nomad/client/config"
 	"github.com/hashicorp/nomad/client/driver/env"
-	cstructs "github.com/hashicorp/nomad/client/structs"
+	"github.com/hashicorp/nomad/client/fingerprint"
 	"github.com/hashicorp/nomad/nomad/structs"
 	"github.com/hashicorp/nomad/testutil"
 
@@ -33,8 +33,8 @@ func TestExecDriver_Fingerprint_NonLinux(t *testing.T) {
 	d := NewExecDriver(&DriverContext{})
 	node := &structs.Node{}
 
-	request := &cstructs.FingerprintRequest{Config: &config.Config{}, Node: node}
-	var response cstructs.FingerprintResponse
+	request := &fingerprint.FingerprintRequest{Config: &config.Config{}, Node: node}
+	var response fingerprint.FingerprintResponse
 	err := d.Fingerprint(request, &response)
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -64,8 +64,8 @@ func TestExecDriver_Fingerprint(t *testing.T) {
 		},
 	}
 
-	request := &cstructs.FingerprintRequest{Config: &config.Config{}, Node: node}
-	var response cstructs.FingerprintResponse
+	request := &fingerprint.FingerprintRequest{Config: &config.Config{}, Node: node}
+	var response fingerprint.FingerprintResponse
 	err := d.Fingerprint(request, &response)
 	if err != nil {
 		t.Fatalf("err: %v", err)

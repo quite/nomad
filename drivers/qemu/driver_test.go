@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	dtestutil "github.com/hashicorp/nomad/plugins/drivers/testutils"
+
 	"github.com/hashicorp/hcl2/hcl"
 	ctestutil "github.com/hashicorp/nomad/client/testutil"
 	"github.com/hashicorp/nomad/helper/testlog"
@@ -35,7 +37,7 @@ func TestQemuDriver_Start_Wait_Stop(t *testing.T) {
 
 	require := require.New(t)
 	d := NewQemuDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := &drivers.TaskConfig{
 		ID:   uuid.Generate(),
@@ -93,7 +95,7 @@ func TestQemuDriver_GetMonitorPathOldQemu(t *testing.T) {
 
 	require := require.New(t)
 	d := NewQemuDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := &drivers.TaskConfig{
 		ID:   uuid.Generate(),
@@ -144,7 +146,7 @@ func TestQemuDriver_GetMonitorPathNewQemu(t *testing.T) {
 
 	require := require.New(t)
 	d := NewQemuDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := &drivers.TaskConfig{
 		ID:   uuid.Generate(),
@@ -233,7 +235,7 @@ func TestQemuDriver_User(t *testing.T) {
 
 	require := require.New(t)
 	d := NewQemuDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := &drivers.TaskConfig{
 		ID:   uuid.Generate(),
@@ -286,7 +288,7 @@ func TestQemuDriver_Stats(t *testing.T) {
 
 	require := require.New(t)
 	d := NewQemuDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := &drivers.TaskConfig{
 		ID:   uuid.Generate(),
@@ -356,7 +358,7 @@ func TestQemuDriver_Fingerprint(t *testing.T) {
 	}
 
 	d := NewQemuDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	fingerCh, err := harness.Fingerprint(context.Background())
 	require.NoError(err)

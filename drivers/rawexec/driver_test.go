@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/nomad/helper/uuid"
 	basePlug "github.com/hashicorp/nomad/plugins/base"
 	"github.com/hashicorp/nomad/plugins/drivers"
+	dtestutil "github.com/hashicorp/nomad/plugins/drivers/testutils"
 	"github.com/hashicorp/nomad/plugins/shared"
 	"github.com/hashicorp/nomad/plugins/shared/hclspec"
 	"github.com/hashicorp/nomad/testutil"
@@ -36,7 +37,7 @@ func TestRawExecDriver_SetConfig(t *testing.T) {
 	require := require.New(t)
 
 	d := NewRawExecDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
 
 	// Disable raw exec.
@@ -68,7 +69,7 @@ func TestRawExecDriver_Fingerprint(t *testing.T) {
 		return func(t *testing.T) {
 			require := require.New(t)
 			d := NewRawExecDriver(testlog.HCLogger(t)).(*Driver)
-			harness := drivers.NewDriverHarness(t, d)
+			harness := dtestutil.NewDriverHarness(t, d)
 			defer harness.Kill()
 
 			var data []byte
@@ -125,7 +126,7 @@ func TestRawExecDriver_StartWait(t *testing.T) {
 	require := require.New(t)
 
 	d := NewRawExecDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
 	task := &drivers.TaskConfig{
 		ID:   uuid.Generate(),
@@ -158,7 +159,7 @@ func TestRawExecDriver_StartWaitStop(t *testing.T) {
 	require := require.New(t)
 
 	d := NewRawExecDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
 
 	// Disable cgroups so test works without root
@@ -227,7 +228,7 @@ func TestRawExecDriver_StartWaitRecoverWaitStop(t *testing.T) {
 	require := require.New(t)
 
 	d := NewRawExecDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
 
 	// Disable cgroups so test works without root
@@ -310,7 +311,7 @@ func TestRawExecDriver_Start_Wait_AllocDir(t *testing.T) {
 	require := require.New(t)
 
 	d := NewRawExecDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
 
 	task := &drivers.TaskConfig{
@@ -364,7 +365,7 @@ func TestRawExecDriver_Start_Kill_Wait_Cgroup(t *testing.T) {
 	pidFile := "pid"
 
 	d := NewRawExecDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
 
 	task := &drivers.TaskConfig{
@@ -453,7 +454,7 @@ func TestRawExecDriver_Exec(t *testing.T) {
 	require := require.New(t)
 
 	d := NewRawExecDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
 
 	task := &drivers.TaskConfig{

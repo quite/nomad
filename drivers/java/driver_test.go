@@ -8,6 +8,8 @@ import (
 	"sync"
 	"testing"
 
+	dtestutil "github.com/hashicorp/nomad/plugins/drivers/testutils"
+
 	"context"
 	"time"
 
@@ -39,7 +41,7 @@ func TestJavaDriver_Fingerprint(t *testing.T) {
 	}
 
 	d := NewDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	fpCh, err := harness.Fingerprint(context.Background())
 	require.NoError(t, err)
@@ -61,7 +63,7 @@ func TestJavaDriver_Jar_Start_Wait(t *testing.T) {
 
 	require := require.New(t)
 	d := NewDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := basicTask(t, "demo-app", map[string]interface{}{
 		"jar_path":    "demoapp.jar",
@@ -100,7 +102,7 @@ func TestJavaDriver_Jar_Stop_Wait(t *testing.T) {
 
 	require := require.New(t)
 	d := NewDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := basicTask(t, "demo-app", map[string]interface{}{
 		"jar_path":    "demoapp.jar",
@@ -164,7 +166,7 @@ func TestJavaDriver_Class_Start_Wait(t *testing.T) {
 
 	require := require.New(t)
 	d := NewDriver(testlog.HCLogger(t))
-	harness := drivers.NewDriverHarness(t, d)
+	harness := dtestutil.NewDriverHarness(t, d)
 
 	task := basicTask(t, "demo-app", map[string]interface{}{
 		"class": "Hello",

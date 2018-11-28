@@ -1141,6 +1141,43 @@ func TestDockerDriver_CreateContainerConfig(t *testing.T) {
 	require.EqualValues(t, opt, c.HostConfig.StorageOpt)
 }
 
+func TestDockerDriver_CreateContainerConfig_TaskBinds(t *testing.T) {
+	t.Parallel()
+
+	task, cfg, _ := dockerTask(t)
+	cfg.Volumes = []string{
+		"/usr-config/host/path:/usr-config/container/path",
+	}
+	task.Mounts = []*drivers.MountConfig{
+		{HostPath: "/task-mounts/host", TaskPath: "/task-mounts/task-path"},
+		{HostPath: "/task-mounts/host-ro", TaskPath: "/task-mounts/task-path-ro", Readonly: true},
+	}
+	task.Devices = []*drivers.DeviceConfig{
+		{HostPath: "/task-devices/host", TaskPath: "/task-devices/task-path", Permissions: "rw"},
+		{HostPath: "/task-devices/host-ro", TaskPath: "/task-devices/task-path-ro", Permissions: "ro"},
+	}
+
+	require.NoError(t, task.EncodeConcreteDriverConfig(cfg))
+
+	dh := dockerDriverHarness(t, nil)
+	driver := dh.Impl().(*Driver)
+
+	c, err := driver.createContainerConfig(task, cfg, "org/repo:0.1")
+	require.NoError(t, err)
+
+	expectedBinds := []string{
+		"/usr-config/host/path:/usr-config/container/path",
+		"/task-mounts/host:/task-mounts/task-path",
+		"/task-mounts/host-ro:/task-mounts/task-path-ro:ro",
+		"/task-devices/host:/task-devices/task-path",
+		"/task-devices/host-ro:/task-devices/task-path-ro:ro",
+	}
+
+	for _, b := range expectedBinds {
+		require.Contains(t, c.HostConfig.Binds, b)
+	}
+}
+
 func TestDockerDriver_Capabilities(t *testing.T) {
 	if !tu.IsTravis() {
 		t.Parallel()

@@ -536,10 +536,30 @@ func (d *Driver) loadImage(task *drivers.TaskConfig, driverConfig *TaskConfig, c
 
 func (d *Driver) containerBinds(task *drivers.TaskConfig, driverConfig *TaskConfig) ([]string, error) {
 
-	allocDirBind := fmt.Sprintf("%s:%s", task.TaskDir().SharedAllocDir, task.Env[env.AllocDir])
-	taskLocalBind := fmt.Sprintf("%s:%s", task.TaskDir().LocalDir, task.Env[env.TaskLocalDir])
-	secretDirBind := fmt.Sprintf("%s:%s", task.TaskDir().SecretsDir, task.Env[env.SecretsDir])
-	binds := []string{allocDirBind, taskLocalBind, secretDirBind}
+	binds := []string{
+		// alloc directory
+		fmt.Sprintf("%s:%s", task.TaskDir().SharedAllocDir, task.Env[env.AllocDir]),
+		// task local directory
+		fmt.Sprintf("%s:%s", task.TaskDir().LocalDir, task.Env[env.TaskLocalDir]),
+		// secrets dir bind
+		fmt.Sprintf("%s:%s", task.TaskDir().SecretsDir, task.Env[env.SecretsDir]),
+	}
+
+	for _, m := range task.Mounts {
+		opts := ""
+		if m.Readonly {
+			opts = ":ro"
+		}
+		binds = append(binds, fmt.Sprintf("%s:%s%s", m.HostPath, m.TaskPath, opts))
+	}
+
+	for _, m := range task.Devices {
+		opts := ":ro"
+		if m.Permissions == "rw" {
+			opts = ""
+		}
+		binds = append(binds, fmt.Sprintf("%s:%s%s", m.HostPath, m.TaskPath, opts))
+	}
 
 	if !d.config.Volumes.Enabled && driverConfig.VolumeDriver != "" {
 		return nil, fmt.Errorf("volumes are not enabled; cannot use volume driver %q", driverConfig.VolumeDriver)

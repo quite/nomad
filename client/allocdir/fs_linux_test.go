@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"golang.org/x/sys/unix"
 )
@@ -164,4 +167,116 @@ func TestLinuxUnprivilegedSecretDir(t *testing.T) {
 	if err := removeSecretDir(secretsDir); err != nil {
 		t.Fatalf("error removing nonexistent secrets dir %q: %v", secretsDir, err)
 	}
+}
+
+// Test bind mounting works
+func TestLinuxRoot_BindMounting_Dir(t *testing.T) {
+	if unix.Geteuid() != 0 {
+		t.Skip("Must be run as root")
+	}
+
+	tmpdir, err := ioutil.TempDir("", "test-linux-root")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpdir)
+
+	sourceDir := filepath.Join(tmpdir, "sourcedir")
+	require.NoError(t, os.Mkdir(sourceDir, 0601))
+
+	sampleFileContent := randomBytes(30)
+	err = ioutil.WriteFile(
+		filepath.Join(sourceDir, "testfile"),
+		sampleFileContent,
+		0604)
+	require.NoError(t, err)
+
+	t.Run("read-write bind mount", func(t *testing.T) {
+		target := filepath.Join(tmpdir, "targetdir-rw")
+		defer unmount(target)
+
+		err := bindMount(sourceDir, target, false)
+		require.NoError(t, err)
+
+		// resulting target has the same permissions
+		fi, err := os.Stat(target)
+		require.NoError(t, err)
+		require.EqualValues(t, os.FileMode(0601), fi.Mode().Perm())
+
+		// can see the file in source directory through mount
+		found, err := ioutil.ReadFile(filepath.Join(target, "testfile"))
+		require.NoError(t, err)
+		require.EqualValues(t, sampleFileContent, found)
+
+		fi, err = os.Stat(filepath.Join(target, "testfile"))
+		require.NoError(t, err)
+		require.EqualValues(t, os.FileMode(0604), fi.Mode().Perm())
+
+		// can modify in target path and work is present through source
+		newFileContent := randomBytes(30)
+		err = ioutil.WriteFile(filepath.Join(target, "newtestfile"),
+			newFileContent,
+			0604)
+		require.NoError(t, err)
+
+		found, err = ioutil.ReadFile(filepath.Join(sourceDir, "newtestfile"))
+		require.NoError(t, err)
+		require.EqualValues(t, newFileContent, found)
+
+		// unmount
+		err = unmount(target)
+		require.NoError(t, err)
+
+		// once unmount, cannot read files through target
+		found, err = ioutil.ReadFile(filepath.Join(target, "testfile"))
+		require.True(t, os.IsNotExist(err))
+	})
+
+	t.Run("read-readonly bind mount", func(t *testing.T) {
+		target := filepath.Join(tmpdir, "targetdir-ro")
+		fmt.Printf("created path %v\n", target)
+		defer unmount(target)
+
+		err := bindMount(sourceDir, target, true)
+		require.NoError(t, err)
+
+		// resulting target has the same permissions
+		fi, err := os.Stat(target)
+		require.NoError(t, err)
+		require.EqualValues(t, os.FileMode(0601), fi.Mode().Perm())
+
+		// can see the file in source directory through mount
+		found, err := ioutil.ReadFile(filepath.Join(target, "testfile"))
+		require.NoError(t, err)
+		require.EqualValues(t, sampleFileContent, found)
+
+		fi, err = os.Stat(filepath.Join(target, "testfile"))
+		require.NoError(t, err)
+		require.EqualValues(t, os.FileMode(0604), fi.Mode().Perm())
+
+		// cannot write to target path
+		err = ioutil.WriteFile(filepath.Join(target, "newtestfile"),
+			randomBytes(30),
+			0604)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "read-only file system")
+
+		// unmount
+		err = unmount(target)
+		require.NoError(t, err)
+
+		// once unmount, cannot read files through target
+		found, err = ioutil.ReadFile(filepath.Join(target, "testfile"))
+		require.True(t, os.IsNotExist(err))
+
+	})
+
+}
+
+func randomBytes(c int) []byte {
+	b := make([]byte, c)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic("could not generate random bytes")
+	}
+
+	return b
 }

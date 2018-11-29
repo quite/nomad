@@ -161,6 +161,18 @@ func (t *TaskDir) buildChroot(chrootCreated bool, entries map[string]string) err
 	return nil
 }
 
+func (t *TaskDir) Mount(source, dest string, readonly bool) error {
+	if err := createDir(t.Dir, filepath.Dir(dest)); err != nil {
+		return fmt.Errorf("failed to create destination directory %v: %v", dest, err)
+	}
+
+	return bindMount(source, filepath.Join(t.Dir, dest), readonly)
+}
+
+func (t *TaskDir) Unmount(path string) error {
+	return unmount(filepath.Join(t.Dir, path))
+}
+
 func (t *TaskDir) embedDirs(entries map[string]string) error {
 	subdirs := make(map[string]string)
 	for source, dest := range entries {

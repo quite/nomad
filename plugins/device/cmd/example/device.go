@@ -111,12 +111,18 @@ func (d *FsDevice) ConfigSchema() (*hclspec.Spec, error) {
 // SetConfig is used to set the configuration of the plugin.
 func (d *FsDevice) SetConfig(data []byte, cfg *base.ClientAgentConfig) error {
 	var config Config
+	var err error
+
 	if err := base.MsgPackDecode(data, &config); err != nil {
 		return err
 	}
 
 	// Save the device directory and the unhealthy permissions
-	d.deviceDir = config.Dir
+	d.deviceDir, err = filepath.Abs(config.Dir)
+	if err != nil {
+		return fmt.Errorf("failed to find device_dir abs path: %v", err)
+	}
+
 	d.unhealthyPerm = config.UnhealthyPerm
 
 	// Convert the poll period

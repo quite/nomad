@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/e2e/framework"
@@ -9,8 +10,6 @@ import (
 	"github.com/hashicorp/nomad/helper/uuid"
 	"github.com/hashicorp/nomad/jobspec"
 	"github.com/stretchr/testify/require"
-
-	"time"
 
 	. "github.com/onsi/gomega"
 )
